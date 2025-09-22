@@ -1,0 +1,11 @@
+statistics_files/triviaqa.statistics,datasets_files/triviaqa.txt,QA
+statistics_files/squadv2.statistics,datasets_files/squadv2.txt,QA
+statistics_files/mlqa.statistics,datasets_files/mlqa.txt,QA
+statistics_files/piqa.statistics,datasets_files/piqa.txt,QA
+statistics_files/wmt14-fr-en.statistics,datasets_files/wmt14-fr-en.txt,translate_fr_en
+statistics_files/wmt14-en-fr.statistics,datasets_files/wmt14-en-fr.txt,translate_en_fr
+statistics_files/wmt16-de-en.statistics,datasets_files/wmt16-de-en.txt,translate_de_en
+statistics_files/wmt16-ro-en.statistics,datasets_files/wmt16-ro-en.txt,translate_ro_en
+statistics_files/cnn_dailymail.statistics,datasets_files/cnn_dailymail.json,summarize
+statistics_files/samsum.statistics,datasets_files/samsum.json,summarize
+statistics_files/xsum.statistics,datasets_files/xsum.json,summarize

@@ -3,6 +3,8 @@ import numpy as np
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
 import json
+import argparse
+import csv
 
 def pre_process_prompt(prompt, task_type):
     if task_type == 'QA':
@@ -122,73 +124,33 @@ def process_prompt_batch(prompts, task_type, model_name):
     
     return processed_prompts
 
-# === CONFIG ===
-configs = [
-    {
-        "output_file": "triviaqa.statistics",
-        "dataset_file": "triviaqa.txt",
-        "task_type": "QA"
-    },
-    {
-        "output_file": "squadv2.statistics",
-        "dataset_file": "squadv2.txt",
-        "task_type": "QA"
-    },
-    {
-        "output_file": "mlqa.statistics",
-        "dataset_file": "mlqa.txt",
-        "task_type": "QA"
-    },
-    {
-        "output_file": "piqa.statistics",
-        "dataset_file": "piqa.txt",
-        "task_type": "QA"
-    },
-    {
-        "output_file": "wmt14-fr-en.statistics",
-        "dataset_file": "wmt14-fr-en.txt",
-        "task_type": "translate_fr_en"
-    },
-    {
-        "output_file": "wmt14-en-fr.statistics",
-        "dataset_file": "wmt14-en-fr.txt",
-        "task_type": "translate_en_fr"
-    },
-    
-    {
-        "output_file": "wmt16-de-en.statistics",
-        "dataset_file": "wmt16-de-en.txt",
-        "task_type": "translate_de_en"
-    },
-    {
-        "output_file": "wmt16-ro-en.statistics",
-        "dataset_file": "wmt16-ro-en.txt",
-        "task_type": "translate_ro_en"
-    },
-    {
-        "output_file": "cnn_dailymail.statistics",
-        "dataset_file": "cnn_dailymail.json",
-        "task_type": "summarize"
-    },
-    {
-        "output_file": "samsum.statistics",
-        "dataset_file": "samsum.json",
-        "task_type": "summarize"
-    },
-    {
-        "output_file": "xsum.statistics",
-        "dataset_file": "xsum.json",
-        "task_type": "summarize"
-    }
-]
+def read_config_file(file):
+    configs = []
+    with open(file, newline="") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            configs.append({
+                "output_file": row[0],
+                "dataset_file": row[1],
+                "task_type": row[2]
+            })
+    return configs
 
-model_name = "../models/opt-6.7b"
-max_new_tokens = 128
-prompt_limit = 5000  # Limit how many prompts to process
-    
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, default="../models/opt-6.7b", help='Model Name')
+parser.add_argument('--max_new_tokens', type=int, default=128, help='Number of new tokens to generate.')
+parser.add_argument('--prompt_limit', type=int, default=5000, help='Number of prompts to process.')
+parser.add_argument('--configs', type=str, default="configs.csv", help='Path to CSV file with dataset configurations with format: output_file,dataset_file,task_type')
+
+args = parser.parse_args()
+model_name = args.model_name
+max_new_tokens = args.max_new_tokens
+prompt_limit = args.prompt_limit
+configs = read_config_file(args.configs)
+
 for config in configs:
-    output_file = f"statistics_files/{config['output_file']}"
-    dataset_file = f"datasets_files/{config['dataset_file']}"
+    output_file = config['output_file']
+    dataset_file = config['dataset_file']
     task_type = config["task_type"]
 
     # === Load model and tokenizer ===

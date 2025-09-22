@@ -1,7 +1,9 @@
 import json
+import argparse
+import csv
 
 def load_and_normalize_activations(file_path, token_count):
-    with open(f"statistics_files/{file_path}", "r") as file:
+    with open(file_path, "r") as file:
         lines = file.readlines()[2:]
         activations = []
         for line in lines:
@@ -9,34 +11,33 @@ def load_and_normalize_activations(file_path, token_count):
             activations.append([float(x.strip()) / token_count for x in parts])
     return activations
 
-datasets = {
-    # "triviaqa": {"path": "triviaqa.statistics"},
-    # "squadv2": {"path": "squadv2.statistics"},
-    # "mlqa": {"path": "mlqa.statistics"},
-    "piqa": {"path": "piqa.statistics"},
-    # "wmt16-de-en": {"path": "wmt16-de-en.statistics"},
-    # "wmt16-ro-en": {"path": "wmt16-ro-en.statistics"},
-    # "wmt14-fr-en": {"path": "wmt14-fr-en.statistics"},
-    "wmt14-en-fr": {"path": "wmt14-en-fr.statistics"},
-    # "cnn_dailymail": {"path": "cnn_dailymail.statistics"},
-    # "xsum": {"path": "xsum.statistics"},
-    "samsum": {"path": "samsum.statistics"},
-}
+def read_datasets_file(file):
+    datasets = {}
+    with open(file, newline="") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            datasets[row[0]] = row[1]
+    return datasets
 
-outputFileName = f"../neuron_files/opt-6.7b/model_neurons.json"
+parser = argparse.ArgumentParser()
+parser.add_argument('--output_file', type=str, default="../neuron_files/opt-6.7b/model_neurons.json", help='Path for the output JSON file.')
+parser.add_argument('--statistics', type=str, default="datasets.csv", help='Path to CSV file with dataset statistics file with format: name,path')
+
+args = parser.parse_args()
+output_file = args.output_file
+statistics = read_datasets_file(args.statistics)
 
 normalized_activations = {}
-for name, meta in datasets.items():
-    with open(f'statistics_files/{meta["path"]}', "r") as f:
+for name, path in statistics.items():
+    with open(path, "r") as f:
         lines = f.readlines()
         num_tokens = int(lines[-1].split("Number of tokens: ")[1])
-        print(num_tokens)
-    normalized_activations[name] = load_and_normalize_activations(meta["path"], num_tokens)
+    normalized_activations[name] = load_and_normalize_activations(path, num_tokens)
 
 num_layers = len(next(iter(normalized_activations.values()))) - 1
 finalResult = []
 for i in range(num_layers):
-    combined = zip(*(normalized_activations[ds][i] for ds in datasets))
+    combined = zip(*(normalized_activations[ds][i] for ds in statistics))
     averaged_layer = [sum(vals) / len(vals) * 100 for vals in combined]
     finalResult.append(averaged_layer)
 
@@ -50,10 +51,5 @@ for layer in finalResult:
 
 write_file = True
 if write_file:
-    with open(outputFileName, "w") as file:
+    with open(output_file, "w") as file:
         json.dump({"neurons": finalSorted}, file)
-
-
-
-
-

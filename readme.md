@@ -82,32 +82,32 @@ This repository provides utilities for creating **neuron files** from datasets u
 
 ---
 
-## 1. Gather Statistics
+### 1. Gather Statistics
 
-The script **`gather_statistics.py`** generates **score files** for the datasets.  
+The script **`gather_statistics.py`** generates score files for the datasets.  
 Each score file contains:
 - Scores calculated for every neuron
 - The number of processed tokens
 
-### Key Variables
+### Parameters
 
-- **`model_name`**: Name of the model to be used  
-- **`max_new_tokens`**: Number of tokens to generate  
-- **`prompt_limit`**: Number of prompts to process from the dataset file (starting from the top)  
-- **`configs`**: Defines dataset file, output location, and task type for each dataset  
+- `--model_name`: name of the model to use
+- `--max_new_tokens`: maximum number of tokens to generate  
+- `--prompt_limit`: number of prompts to process from the dataset file
+- `--configs`: path to a CSV file specifying the output path, datasets, and task type
 
 Additionally, the function **`pre_process_prompt`** can be customized to define how prompts should be preprocessed before execution.
 
 ---
 
-## 2. Evaluation
+### 2. Evaluation
 
-Once score files have been created, run **`evaluation.py`** to generate the final **neuron file**.
+Once score files have been created, run **`evaluation.py`** to generate the final neuron file.
 
-### Key Variables
+### Parameters
 
-- **`datasets`**: Paths to the corresponding score files  
-- **`outputFileName`**: Path and filename for the final neuron file  
+- `--datasets`: path to a CSV file specifying which score files to use
+- `--outputFileName`: output path for the neuron file
 
 ## Run Inference
 
