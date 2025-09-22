@@ -75,6 +75,40 @@ python download.py --model_name  $model --checkpoint_path /PATH/TO/SAVE/MODEL --
 
 ## Create Neurons Files
 
+This repository provides utilities for creating **neuron files** from datasets using two scripts located in the `statistics` folder:
+
+- `gather_statistics.py`
+- `evaluation.py`
+
+---
+
+## 1. Gather Statistics
+
+The script **`gather_statistics.py`** generates **score files** for the datasets.  
+Each score file contains:
+- Scores calculated for every neuron
+- The number of processed tokens
+
+### Key Variables
+
+- **`model_name`**: Name of the model to be used  
+- **`max_new_tokens`**: Number of tokens to generate  
+- **`prompt_limit`**: Number of prompts to process from the dataset file (starting from the top)  
+- **`configs`**: Defines dataset file, output location, and task type for each dataset  
+
+Additionally, the function **`pre_process_prompt`** can be customized to define how prompts should be preprocessed before execution.
+
+---
+
+## 2. Evaluation
+
+Once score files have been created, run **`evaluation.py`** to generate the final **neuron file**.
+
+### Key Variables
+
+- **`datasets`**: Paths to the corresponding score files  
+- **`outputFileName`**: Path and filename for the final neuron file  
+
 ## Run Inference
 
 To run inference using PartInfer, the `partinfer.py` file is used. This is an example command to run inference using model `llama3-3b` stored in folder `models/llama3-3b` with method `partinfer` in `chat` function:
@@ -83,7 +117,7 @@ python partinfer.py --model_name 'llama3-3b' --checkpoint_path 'models/llama3-3b
 ```
 
 This are the available parameters for `partinfer.py`:
-- `--model_name`: name of the model to used
+- `--model_name`: name of the model to be used
 - `--checkpoint_path`: path of the model to use
 - `--method`: Method to apply during inference\
   - `partinfer`: PartInfer implementation
