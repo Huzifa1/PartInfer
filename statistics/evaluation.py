@@ -21,11 +21,11 @@ def read_datasets_file(file):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output_file', type=str, default="../neuron_files/opt-6.7b/model_neurons.json", help='Path for the output JSON file.')
-parser.add_argument('--statistics', type=str, default="datasets.csv", help='Path to CSV file with dataset statistics file with format: name,path')
+parser.add_argument('--datasets', type=str, default="datasets.csv", help='Path to CSV file with dataset statistics file with format: name,path')
 
 args = parser.parse_args()
 output_file = args.output_file
-statistics = read_datasets_file(args.statistics)
+statistics = read_datasets_file(args.datasets)
 
 normalized_activations = {}
 for name, path in statistics.items():
