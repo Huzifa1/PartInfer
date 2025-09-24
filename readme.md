@@ -98,6 +98,11 @@ Each score file contains:
 
 Additionally, the function **`pre_process_prompt`** can be customized to define how prompts should be preprocessed before execution.
 
+Example:
+```
+python gather_statistics.py --model_name ../models/opt-6.7b --max_new_tokens 128 --prompt_limit 5000 --configs all_datasets_config.csv
+```
+
 ---
 
 ### 2. Evaluation
@@ -107,7 +112,12 @@ Once score files have been created, run **`evaluation.py`** to generate the fina
 ### Parameters
 
 - `--datasets`: path to a CSV file specifying which score files to use
-- `--outputFileName`: output path for the neuron file
+- `--output_file`: output path for the neuron file
+
+Example:
+```
+python evaluation.py --datasets model_neurons.csv --output_file neurons.json
+```
 
 ## Run Inference
 
