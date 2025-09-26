@@ -36,13 +36,13 @@ python3 -m venv .partinfer-venv
 **Linux / macOS**:
     
 ```bash
-source venv/bin/activate
+source .partinfer-venv/bin/activate
 ```
     
 **Windows (PowerShell)**:
     
 ```powershell
-.\venv\Scripts\Activate
+.\.partinfer-venv\Scripts\Activate
 ```
     
 
@@ -67,10 +67,9 @@ deactivate
 You can download the required models and datasets to the specified location using the following command.
 
 ```python
-python download.py --model_name  $model --checkpoint_path /PATH/TO/SAVE/MODEL --data_name $dataset --data_config $data_config  --datasave_path /PATH/TO/SAVE/DATASET
+python download.py --model_name  $model --checkpoint_path /PATH/TO/SAVE/MODEL --token $token
 
-# e.g.: python download.py --model_name  'facebook/opt-6.7b' --checkpoint_path "./models/opt-6.7b" --data_name "truthfulqa/truthful_qa" --data_config "generation" --datasave_path "./dataset/trurthul_qa"
-# e.g.: python download.py --model_name  'meta-llama/Llama-3.1-8B' --checkpoint_path "./models/llama3-8b" --data_name "truthfulqa/truthful_qa" --data_config "generation" --datasave_path "./dataset/trurthul_qa" --token "xxxxx"
+# e.g.: python download.py --model_name  'meta-llama/Llama-3.2-3B' --checkpoint_path "./models/llama3-3b" --token "xxxxx"
 ```
 
 ## Create Neurons Files
@@ -102,7 +101,7 @@ Additionally, the function **`pre_process_prompt`** can be customized to define 
 Example:
 ```
 cd statistics
-python gather_statistics.py --model_name ../models/opt-6.7b --max_new_tokens 128 --prompt_limit 5000 --batch_size 16 --configs all_datasets_config.csv
+python gather_statistics.py --model_name ../models/llama3-3b --max_new_tokens 128 --prompt_limit 5000 --batch_size 16 --configs all_datasets_config.csv
 ```
 
 ---
@@ -126,7 +125,7 @@ python evaluation.py --input_path statistics_files/llama3-3b/ --datasets model_n
 
 To run inference using PartInfer, the `partinfer.py` file is used. This is an example command to run inference using model `llama3-3b` stored in folder `models/llama3-3b` with method `partinfer` in `chat` function:
 ```
-python partinfer.py --model_name 'llama3-3b' --checkpoint_path 'models/llama3-3b' --cpu_only --method partinfer --function predefined_prompts
+python partinfer.py --model_name 'llama3-3b' --checkpoint_path 'models/llama3-3b' --method partinfer --function predefined_prompts
 ```
 
 This are the available parameters for `partinfer.py`:
@@ -223,7 +222,7 @@ cd evaluation
 python3 evaluate_speed.py --model_name $MODEL_NAME --checkpoint_path $PATH_TO_MODEL --num_tokens_to_generate $NUM_TOKENS --method $METHOD
 
 # e.g. to run with PartInfer and Llama3.2-3B while loading 70% and computing 40% of neurons:
-python3 evaluate_speed.py --model_name "llama3-3b" --checkpoint_path ../models/llama3-3b --num_tokens_to_generate 256 --method "partinfer" --loaded_neurons_percent 0.7 --sparsity -0.4
+python3 evaluate_speed.py --model_name "llama3-3b" --checkpoint_path ../models/llama3-3b --num_tokens_to_generate 256 --method "partinfer" --loaded_neurons_percent 0.7 --sparsity 0.4
 ```
 
 For more control on different percentages and neurons files, run the following command or refer to the paper:

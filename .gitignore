@@ -1,4 +1,5 @@
 .partinfer/
+.partinfer-venv/
 partinfer/
 dataset/
 models/

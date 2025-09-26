@@ -58,7 +58,7 @@ def evaluate_batched(model, tokenizer, num_tokens_to_generate, device, batch_siz
     print(f"Average throughput: {all_tokens_generated/total_elapsed_time:.2f} tokens/second")
 
 
-def main(method, model_name, checkpoint_path, sparsity, start_num, end_num, token_sparsity, memory_limit, num_tokens_to_generate, device, partinfer_method_config, cpu_only = False):
+def main(method, model_name, checkpoint_path, sparsity, start_num, end_num, token_sparsity, memory_limit, num_tokens_to_generate, batch_size, num_batches, device, partinfer_method_config, cpu_only = False):
     
     if (USE_PARTINFER_IMPROVEMENTS):
         create_neurons_mask.main(start_num, end_num, partinfer_method_config)
@@ -75,10 +75,10 @@ def main(method, model_name, checkpoint_path, sparsity, start_num, end_num, toke
 
     evaluate_batched(
         model, tokenizer,
-        num_tokens_to_generate=256,
+        num_tokens_to_generate=num_tokens_to_generate,
         device=device,
-        batch_size=16,
-        num_batches=5
+        batch_size=batch_size,
+        num_batches=num_batches
     )
 
 
@@ -93,6 +93,8 @@ if __name__ == '__main__':
     parser.add_argument('--start_num', type=int, default=4, help='Start layer.')
     parser.add_argument('--end_num', type=int, default=26, help='End layer.')
     parser.add_argument('--token_sparsity', type=float, default=0.2, help='Token Sparsity level.')
+    parser.add_argument('--batch_size', type=int, default=16, help='Value of batch size.')
+    parser.add_argument('--num_batches', type=int, default=5, help='Number of batches.')
     parser.add_argument('--memory_limit', action='store_true', help='Enable memory limit.')
     parser.add_argument('--method', type=str, choices=['coreinfer', 'dense', 'partinfer'], default='partinfer', help='Method to use (default: partinfer).')
     parser.add_argument('--cpu_only', action='store_true', help='Run inference on CPU only.')
@@ -101,9 +103,9 @@ if __name__ == '__main__':
     parser.add_argument('--base_neurons_percent', type=float, default=0.3, help='Loaded Base Neurons Percent')
     parser.add_argument('--base_neurons_type', type=str, choices=['model', 'dataset'], default='dataset', help='Base Neurons Type')
     parser.add_argument('--loaded_neurons_percent', type=float, default=0.7, help='Overall Percent of Loaded Neurons')
-    parser.add_argument('--model_neurons_filepath', type=Path, default="neurons_files/llama3-3b/model_neurons.json", help='Path to model neurons file')
-    parser.add_argument('--dataset_neurons_filepath', type=Path, default="neurons_files/llama3-3b/qa.json", help='Path to dataset neurons file')
-    parser.add_argument('--mask_filepath', type=Path, default="neurons_files/mask.pkl", help='Path to output mask file')
+    parser.add_argument('--model_neurons_filepath', type=Path, default="neuron_files/llama3-3b/model_neurons.json", help='Path to model neurons file')
+    parser.add_argument('--dataset_neurons_filepath', type=Path, default="neuron_files/llama3-3b/qa.json", help='Path to dataset neurons file')
+    parser.add_argument('--mask_filepath', type=Path, default="neuron_files/mask.pkl", help='Path to output mask file')
 
 
 
@@ -123,4 +125,4 @@ if __name__ == '__main__':
         "mask_filepath": args.mask_filepath
     }
 
-    main(args.method, args.model_name, args.checkpoint_path, args.sparsity, args.start_num, args.end_num, args.token_sparsity, args.memory_limit, args.num_tokens_to_generate, args.device, partinfer_method_config, args.cpu_only)
+    main(args.method, args.model_name, args.checkpoint_path, args.sparsity, args.start_num, args.end_num, args.token_sparsity, args.memory_limit, args.num_tokens_to_generate, args.batch_size, args.num_batches, args.device, partinfer_method_config, args.cpu_only)
