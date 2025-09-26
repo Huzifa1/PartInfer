@@ -31,7 +31,11 @@ MODEL_INFO = {
     'llama3-3b': {
         'num_neurons': 8192,
         'activation_fn': torch.nn.SiLU
-    }
+    },
+    'llama3-1b': {
+        'num_neurons': 8192,
+        'activation_fn': torch.nn.SiLU
+    },
 }
     
 def get_layer_name(model_name, Layer_num):

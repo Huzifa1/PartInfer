@@ -21,8 +21,8 @@ class ReduceLayer(nn.Module):
         if neuron_num > loaded_neuron_num:
             raise RuntimeError(f"Number of required neurons ({neuron_num}) is larger than the number of loaded neurons ({loaded_neuron_num})")
         
-        # if p := partinfer_method_config["base_neurons_percent"] > sparsity:
-        #     raise RuntimeError(f"base_neurons_percent ({p}) is larger than sparsity ({sparsity}).")
+        if p := partinfer_method_config["base_neurons_percent"] > sparsity:
+            raise RuntimeError(f"base_neurons_percent ({p}) is larger than sparsity ({sparsity}).")
                 
         self.bias = bias.to(self.device)
         self.weight = weight.to(self.device)
