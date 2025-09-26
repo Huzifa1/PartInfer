@@ -140,16 +140,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, default="../models/opt-6.7b", help='Model Name')
 parser.add_argument('--max_new_tokens', type=int, default=128, help='Number of new tokens to generate.')
 parser.add_argument('--prompt_limit', type=int, default=5000, help='Number of prompts to process.')
+parser.add_argument('--batch_size', type=int, default=16, help='Batch Size.')
 parser.add_argument('--configs', type=str, default="all_datasets_config.csv", help='Path to CSV file with dataset configurations with format: output_file,dataset_file,task_type')
 
 args = parser.parse_args()
 model_name = args.model_name
 max_new_tokens = args.max_new_tokens
 prompt_limit = args.prompt_limit
+batch_size = args.batch_size
 configs = read_config_file(args.configs)
 
 for config in configs:
-    output_file = config['output_file']
+    output_file = f"statistics_files/{model_name}/config['output_file']"
     dataset_file = config['dataset_file']
     task_type = config["task_type"]
 
@@ -182,7 +184,6 @@ for config in configs:
     # === Process dataset file, prompt-by-prompt ===
     ii = 0
     with open(dataset_file, "r") as f:
-        batch_size = 16  # BATCHING CHANGE: Set batch size
         batch = []
                 
         if "json" in dataset_file:

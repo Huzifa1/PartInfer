@@ -1,3 +1,4 @@
-triviaqa,statistics_files/triviaqa.statistics
-mlqa,statistics_files/mlqa.statistics
-piqa,statistics_files/piqa.statistics
+triviaqa,triviaqa.statistics
+squadv2,squadv2.statistics
+mlqa,mlqa.statistics
+piqa,piqa.statistics

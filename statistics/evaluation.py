@@ -20,15 +20,18 @@ def read_datasets_file(file):
     return datasets
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output_file', type=str, default="../neuron_files/opt-6.7b/model_neurons.json", help='Path for the output JSON file.')
-parser.add_argument('--datasets', type=str, default="datasets.csv", help='Path to CSV file with dataset statistics file with format: name,path')
+parser.add_argument('--output_file', type=str, default="../neuron_files/llama3-3b/model_neurons.json", help='Path for the output JSON file.')
+parser.add_argument('--datasets', type=str, default="model_neurons.csv", help='Path to CSV file with dataset statistics file with format: dataset_name,file_name')
+parser.add_argument('--input_path', type=str, default="statistics_files/llama3-3b", help='Path to dir that contains statistics files.')
 
 args = parser.parse_args()
 output_file = args.output_file
+input_path = args.input_path
 statistics = read_datasets_file(args.datasets)
 
 normalized_activations = {}
-for name, path in statistics.items():
+for name, filename in statistics.items():
+    path = f"{input_path}/{filename}"
     with open(path, "r") as f:
         lines = f.readlines()
         num_tokens = int(lines[-1].split("Number of tokens: ")[1])

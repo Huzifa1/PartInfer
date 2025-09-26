@@ -1,3 +1,4 @@
-wmt16-de-en,statistics_files/wmt16-de-en.statistics
-wmt16-ro-en,statistics_files/wmt16-ro-en.statistics
-wmt14-fr-en,statistics_files/wmt14-fr-en.statistics
+wmt16-de-en,wmt16-de-en.statistics
+wmt16-ro-en,wmt16-ro-en.statistics
+wmt14-fr-en,wmt14-fr-en.statistics
+wmt14-en-fr,wmt14-en-fr.statistics

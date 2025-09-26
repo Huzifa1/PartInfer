@@ -94,13 +94,15 @@ Each score file contains:
 - `--model_name`: name of the model to use
 - `--max_new_tokens`: maximum number of tokens to generate  
 - `--prompt_limit`: number of prompts to process from the dataset file
+- `--batch_size`: value of batch size used
 - `--configs`: path to a CSV file specifying the output path, datasets, and task type
 
 Additionally, the function **`pre_process_prompt`** can be customized to define how prompts should be preprocessed before execution.
 
 Example:
 ```
-python gather_statistics.py --model_name ../models/opt-6.7b --max_new_tokens 128 --prompt_limit 5000 --configs all_datasets_config.csv
+cd statistics
+python gather_statistics.py --model_name ../models/opt-6.7b --max_new_tokens 128 --prompt_limit 5000 --batch_size 16 --configs all_datasets_config.csv
 ```
 
 ---
@@ -111,12 +113,13 @@ Once score files have been created, run **`evaluation.py`** to generate the fina
 
 ### Parameters
 
+- `--input_path`: path to dir that contains statistics files
 - `--datasets`: path to a CSV file specifying which score files to use
 - `--output_file`: output path for the neuron file
 
 Example:
 ```
-python evaluation.py --datasets model_neurons.csv --output_file neurons.json
+python evaluation.py --input_path statistics_files/llama3-3b/ --datasets model_neurons.csv --output_file ../neuron_files/llama3-3b/model_neurons.json
 ```
 
 ## Run Inference
