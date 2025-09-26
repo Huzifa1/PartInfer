@@ -10,7 +10,7 @@ Our approach is split into 2 phase, offline (left) and online (right). During th
 
 ## Demo
 
-![Demo](assets/demo.mp4)
+https://github.com/user-attachments/assets/a6639637-28d6-4c2c-a94a-6506aad08208
 
 ## Install
 
