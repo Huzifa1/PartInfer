@@ -20,7 +20,6 @@ import json
 import warnings
 from collections import OrderedDict
 
-from ...partinfer import USE_PARTINFER_IMPROVEMENTS, get_used_neurons_count
 from ...configuration_utils import PretrainedConfig
 from ...dynamic_module_utils import get_class_from_dynamic_module, resolve_trust_remote_code
 from ...utils import (

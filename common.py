@@ -1,8 +1,8 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_from_disk
 from convert.convert_opt_model import convert_opt_model
-from convert.convert_llama_model import convert_llama_model
-from convert.convert_llama_model_partinfer import convert_llama_model_partinfer
+from convert.convert_llama_qwen_model import convert_llama_qwen_model
+from convert.convert_llama_qwen_model_partinfer import convert_llama_qwen_model_partinfer
 from convert.convert_opt_model_partinfer import convert_opt_model_partinfer
 
 from utils import *
@@ -36,13 +36,17 @@ MODEL_INFO = {
         'num_neurons': 8192,
         'activation_fn': torch.nn.SiLU
     },
+    'qwen2.5-3b': {
+        'num_neurons': 11008,
+        'activation_fn': torch.nn.SiLU
+    },
 }
     
 def get_layer_name(model_name, Layer_num):
     if "opt" in model_name:
         return f"model.decoder.layers.{Layer_num}.activation_fn"
     
-    if "llama" in model_name:
+    if "llama" or "qwen2.5" in model_name:
         return f"model.layers.{Layer_num}.mlp.down_proj"
     
     raise ValueError("Model Name not supported")
@@ -51,7 +55,7 @@ def get_layer_number(model_name, layer_name):
     if "opt" in model_name:
         return int(layer_name.split(".")[3])
     
-    if "llama" in model_name:
+    if "llama" or "qwen2.5" in model_name:
         return int(layer_name.split(".")[2])
     
     raise ValueError("Model Name not supported")
@@ -93,9 +97,17 @@ def convert_model(method, model, model_name, num_layers, sparsity, start_num, en
 
     elif "llama" in model_name.lower():
         if method == 'coreinfer':
-            model = convert_llama_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only)
+            model = convert_llama_qwen_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only)
         elif method == 'partinfer':
-            model = convert_llama_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, MODEL_INFO[model_name]["num_neurons"], partinfer_method_config)
+            model = convert_llama_qwen_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, MODEL_INFO[model_name]["num_neurons"], partinfer_method_config)
+        elif method == 'dense':
+            pass
+        
+    if "qwen" in model_name.lower():
+        if method == 'coreinfer':
+            model = convert_qwen_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only)
+        # elif method == 'partinfer':
+        #     model = convert_qwen_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, MODEL_INFO[model_name]["num_neurons"], partinfer_method_config)
         elif method == 'dense':
             pass
      
@@ -185,7 +197,7 @@ def register_act_hooks(model_name, model, activation_dict, Layer_num = None):
     model_instance = MODEL_INFO[model_name]['activation_fn']
     
     for name, layer in model.named_modules():
-        if ("llama" in model_name and "down" in name) or ("opt" in model_name and isinstance(layer, model_instance)):
+        if (("llama" in model_name or "qwen2.5" in model_name) and "down" in name) or ("opt" in model_name and isinstance(layer, model_instance)):
             if (Layer_num is None or Layer_num == get_layer_number(model_name, name)):
                 hooks.append(layer.register_forward_hook(get_activation(name, activation_dict)))
             
@@ -251,7 +263,7 @@ def get_sentence_core_neurons(model_name, Layer_num, activations, token_sparsity
     for i in tqdm(range(len(activations)), desc="Calculating Core Neurons"):
         tensor = activations[i][str_act].cpu()
 
-        if "llama" in model_name:
+        if "llama" or "qwen2.5" in model_name:
             tensor = tensor.squeeze(0)
 
         core_neurons = get_core_neurons(tensor, token_sparsity, sparsity, neuron_num)
@@ -266,7 +278,7 @@ def concat_activations_per_layer(model_name, activations, layer_num):
     for i in range(len(activations)):
         str_act = get_layer_name(model_name, layer_num)
         tensor = activations[i][str_act].cpu()
-        if "llama" in model_name:
+        if "llama" or "qwen2.5" in model_name:
             tensor = tensor.squeeze(0)
         layer_act.append(tensor)
     A_tensor = torch.cat(layer_act, dim=0)
@@ -329,7 +341,7 @@ def get_sparsity_levels(model_name, num_layers, sum_weight, count_weight, thresh
         for layer_num in range(num_layers):
             str_act = get_layer_name(model_name, layer_num)
             tensor = activation[str_act]
-            if "llama" in model_name:
+            if "llama" or "qwen2.5" in model_name:
                 tensor = tensor.squeeze(0)
             total_scores = get_neurons_scores(tensor, sum_weight, count_weight, top_k)
             number_of_hot_neurons = int((total_scores > threshold).sum())

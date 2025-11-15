@@ -1,10 +1,8 @@
-# Convert Llama2 Model
 import torch.nn as nn
 import gc
 import torch
 from tqdm import tqdm
 import common
-import pickle
 
 indices_list_all = []
 
@@ -71,9 +69,9 @@ class CustomMLPLayer(nn.Module):
         return true_value
 
 
-def convert_llama_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only):
+def convert_llama_qwen_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only):
     
-    for name, module in tqdm(model.named_modules(), desc="Convert Llama Models"):
+    for name, module in tqdm(model.named_modules(), desc="Converting Modules"):
         if "down" in name or "up" in name or "gate" in name:
             num=int(name.split('.')[2])
             if num>start_num and num<end_num:

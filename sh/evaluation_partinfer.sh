@@ -2,7 +2,7 @@
 DIR_PATH="$(cd .. && pwd)"
 
 # Tunable Params
-MODEL_NAME="opt-6.7b"
+MODEL_NAME="llama3-3b"
 METHOD="partinfer" # One of partinfer, coreinfer, dense, coreinfer_random_loading
 USE_PARTINFER_IMPROVEMENTS=True
 
@@ -10,8 +10,8 @@ USE_PARTINFER_IMPROVEMENTS=True
 LIMIT=10000000
 TOKEN_SPARSITY=0.2
 SPARSITY=0.4
-START_NUM=3
-END_NUM=25
+START_NUM=4
+END_NUM=26
 BASE_NEURONS_PERCENT=0.3
 BASE_NEURONS_TYPE="dataset"
 LOADED_NEURONS_PERCENT=0.7
@@ -22,7 +22,7 @@ MASK_FILEPATH="neuron_files/mask.pkl"
 
 if [ "$METHOD" = "partinfer" ]; then
     USE_PARTINFER_IMPROVEMENTS=True
-    FILE_PREFIX_NAME="default"
+    FILE_PREFIX_NAME="partinfer"
 elif [ "$METHOD" = "dense" ]; then
     if [ "$USE_PARTINFER_IMPROVEMENTS" = "True" ]; then
         FILE_PREFIX_NAME="dense"

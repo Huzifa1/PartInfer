@@ -1,4 +1,3 @@
-# Convert Llama2 Model
 import torch.nn as nn
 import gc
 import torch
@@ -112,12 +111,12 @@ class CustomMLPLayer(nn.Module):
         return true_value
 
 
-def convert_llama_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, original_neurons_num, partinfer_method_config):
+def convert_llama_qwen_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, original_neurons_num, partinfer_method_config):
     
     if not USE_PARTINFER_IMPROVEMENTS:
         raise RuntimeError("Partinfer Improvements / partial loading needs to be activated for partinfer Method")
     
-    for name, module in tqdm(model.named_modules(), desc="Convert Llama Models"):
+    for name, module in tqdm(model.named_modules(), desc="Converting Modules"):
         if "down" in name or "up" in name or "gate" in name:
             num=int(name.split('.')[2])
             if num>start_num and num<end_num:

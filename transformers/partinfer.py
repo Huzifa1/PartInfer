@@ -1,5 +1,3 @@
-
-from transformers.partinfer_variables.partinfer_improvements import USE_PARTINFER_IMPROVEMENTS
 import pickle
 import os
 
