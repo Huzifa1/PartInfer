@@ -95,19 +95,11 @@ def convert_model(method, model, model_name, num_layers, sparsity, start_num, en
         elif method == 'dense':
             pass
 
-    elif "llama" in model_name.lower():
+    elif "llama" or "qwen2.5" in model_name.lower():
         if method == 'coreinfer':
             model = convert_llama_qwen_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only)
         elif method == 'partinfer':
             model = convert_llama_qwen_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, MODEL_INFO[model_name]["num_neurons"], partinfer_method_config)
-        elif method == 'dense':
-            pass
-        
-    if "qwen" in model_name.lower():
-        if method == 'coreinfer':
-            model = convert_qwen_model(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only)
-        # elif method == 'partinfer':
-        #     model = convert_qwen_model_partinfer(model, sparsity, start_num, end_num, token_sparsity, memory_limit, cpu_only, MODEL_INFO[model_name]["num_neurons"], partinfer_method_config)
         elif method == 'dense':
             pass
      

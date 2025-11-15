@@ -1,5 +1,6 @@
 import pickle
 import os
+from transformers.partinfer_variables.partinfer_improvements import USE_PARTINFER_IMPROVEMENTS
 
 def get_used_neurons_count(layer_id: int) -> int:
     return len(get_used_neurons_with_layer_id(layer_id))
