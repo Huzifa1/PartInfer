@@ -9,6 +9,7 @@ from typing import Callable, List, Optional, Tuple, Union
 import torch
 from torch import nn
 
+from ...partinfer import get_used_neurons_count, USE_PARTINFER_IMPROVEMENTS
 from ...activations import ACT2FN
 from ...cache_utils import Cache, DynamicCache, SlidingWindowCache, StaticCache
 from ...generation import GenerationMixin
@@ -484,9 +485,24 @@ class Qwen2Model(Qwen2PreTrainedModel):
         self.vocab_size = config.vocab_size
 
         self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
-        self.layers = nn.ModuleList(
-            [Qwen2DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
-        )
+        
+        # self.layers = nn.ModuleList(
+        #     [Qwen2DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
+        # )
+        
+        # PARTINFER
+        if USE_PARTINFER_IMPROVEMENTS:
+            qwen2_decode_layers = []
+            for layer_idx in range(config.num_hidden_layers):
+                neuron_count = get_used_neurons_count(layer_idx)
+                config.intermediate_size = neuron_count
+                new_layer = Qwen2DecoderLayer(config, layer_idx)
+                qwen2_decode_layers.append(new_layer)
+            self.layers = nn.ModuleList(qwen2_decode_layers)
+        else:
+            self.layers = nn.ModuleList([Qwen2DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)])
+        
+        
         self.norm = Qwen2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.rotary_emb = Qwen2RotaryEmbedding(config=config)
         self.gradient_checkpointing = False
