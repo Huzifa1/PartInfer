@@ -50,7 +50,7 @@ for name, filename in statistics.items():
             raise ValueError(f"Number of tokens not found in file: {path}")
     normalized_activations[name] = load_and_normalize_activations(path, num_tokens)
 
-num_layers = len(next(iter(normalized_activations.values()))) - 1
+num_layers = len(next(iter(normalized_activations.values())))
 finalResult = []
 for i in range(num_layers):
     combined = zip(*(normalized_activations[ds][i] for ds in statistics))
