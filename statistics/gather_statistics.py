@@ -5,6 +5,9 @@ from tqdm import tqdm
 import json
 import argparse
 import csv
+import time
+import os
+import psutil
 
 def pre_process_prompt(prompt, task_type):
     if task_type == 'QA':
@@ -57,7 +60,7 @@ def get_activation_hook(model_name, layer_id):
             
         x_cpu = x.cpu()
         
-        if "llama" in model_name:
+        if "llama" or "qwen2.5" in model_name:
             batch, seq_len, hidden_dim = x_cpu.shape
         elif "opt" in model_name:
             batch, hidden_dim = x_cpu.shape
@@ -150,8 +153,15 @@ prompt_limit = args.prompt_limit
 batch_size = args.batch_size
 configs = read_config_file(args.configs)
 
+process = psutil.Process(os.getpid())
+start_time = time.time()
 for config in configs:
-    output_file = f"statistics_files/{model_name}/config['output_file']"
+    config_start = time.time()
+    print(f"\n=== Starting config: {config} ===")
+    raw_model_name = args.model_name            # path or HF string
+    model_name = raw_model_name                 # used to load model normally
+    model_tag = os.path.basename(raw_model_name.rstrip("/"))
+    output_file = f"statistics_files/{model_tag}/{config['output_file']}"
     dataset_file = config['dataset_file']
     task_type = config["task_type"]
 
@@ -167,12 +177,21 @@ for config in configs:
     tokenizer.model_max_length = ctx_len
     tokenCount = 0
 
+    # reset memory stats at start of this config
+    cpu_mem_start_mb = process.memory_info().rss / (1024**2)
+    if torch.cuda.is_available():
+        for dev in range(torch.cuda.device_count()):
+            with torch.cuda.device(dev):
+                torch.cuda.empty_cache()
+                torch.cuda.reset_peak_memory_stats()
+
+
     # === Global neuron activation count dictionary ===
     neuron_activation_sums = {}
 
     # === Register hooks ONCE globally ===
     hooks = []
-    if "llama" in model_name:
+    if "llama" or "qwen2.5" in model_name:
         for i, layer in enumerate(model.model.layers):
             layer.mlp.down_proj.register_forward_hook(get_activation_hook(model_name, f"layer_{i}_mlp_down_proj"))
     elif "opt" in model_name:
@@ -212,6 +231,32 @@ for config in configs:
             if batch:
                 _ = process_prompt_batch(batch, task_type, model_name)  # BATCHING CHANGE
 
+    
+    config_end = time.time()
+    config_time = config_end - config_start
+    print(f"=== Finished config: {config['output_file']}  |  Time: {config_time:.2f} seconds ({config_time/60:.2f} min) ===")
+    tokens_processed = tokenCount
+    throughput = tokens_processed / config_time if config_time > 0 else float("nan")
+    print(f"    Tokens processed: {tokens_processed}  |  Throughput: {throughput:.1f} tokens/s")
+    # capture memory usage at end of config
+    cpu_mem_end_mb = process.memory_info().rss / (1024**2)
+    # --- GPU peak memory measurement (multi-GPU safe) ---
+    peak_gpu_mem_mb = "No CUDA"
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()  # make sure all GPU work is finished
+
+        peaks = []
+        for dev in range(torch.cuda.device_count()):
+            with torch.cuda.device(dev):
+                peaks.append(torch.cuda.max_memory_allocated())
+
+        peak_gpu_mem_mb = max(peaks) / (1024**2)
+        print(f"    Peak GPU memory allocated (max across GPUs): {peak_gpu_mem_mb:.1f} MB")
+    else:
+        print("    Peak GPU memory allocated: 0.0 MB (no CUDA)")
+
+    print(f"    CPU memory: start {cpu_mem_start_mb:.1f} MB -> end {cpu_mem_end_mb:.1f} MB (Δ {cpu_mem_end_mb - cpu_mem_start_mb:.1f} MB)")
+
     # === Save total neuron activation statistics at the end ===
     with open(output_file, "a") as f:
         f.write(f"layers: {len(neuron_activation_sums)}\n")
@@ -220,4 +265,14 @@ for config in configs:
             layer_nb = layer_name.split("layer_")[1].split("_")[0]
             count_str = ",".join(map(str, activation_counts.tolist()))
             f.write(f"{layer_nb}: {count_str}\n")
-        f.write(f"Number of tokens: {tokenCount}")
+        f.write(f"Number of tokens: {tokenCount}\n")
+        f.write(f"Decoding speed: {tokenCount / config_time:.2f} tokens/second\n")
+        f.write(f"CPU time: {config_time:.2f} seconds ({config_time/60:.2f} minutes)\n")
+        if (peak_gpu_mem_mb != "No CUDA"):
+            f.write(f"Peak GPU memory (max across GPUs): {peak_gpu_mem_mb:.2f} MB\n")
+        stats_size_mb = os.path.getsize(output_file) / (1024**2)
+        f.write(f"Stats file size: {stats_size_mb:.2f} MB")
+
+end_time = time.time()
+total_time = end_time - start_time
+print(f"Total processing time: {total_time:.2f} seconds ({total_time/60:.2f} minutes)")

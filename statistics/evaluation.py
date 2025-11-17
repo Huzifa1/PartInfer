@@ -1,12 +1,19 @@
 import json
 import argparse
 import csv
+import re
 
 def load_and_normalize_activations(file_path, token_count):
     with open(file_path, "r") as file:
         lines = file.readlines()[2:]
         activations = []
         for line in lines:
+            # First 4 characters are number, ":" and a space (e.g., "0: ")
+            # If line does not match expected format, skip it
+            pattern = r"^\d+: "
+            if not re.match(pattern, line):
+                continue
+            
             parts = line.split(":")[1].split(",")
             activations.append([float(x.strip()) / token_count for x in parts])
     return activations
@@ -34,7 +41,13 @@ for name, filename in statistics.items():
     path = f"{input_path}/{filename}"
     with open(path, "r") as f:
         lines = f.readlines()
-        num_tokens = int(lines[-1].split("Number of tokens: ")[1])
+        num_tokens = 0
+        for line in lines:
+            if "Number of tokens: " in line:
+                num_tokens = int(line.split("Number of tokens: ")[1])
+        
+        if num_tokens == 0:
+            raise ValueError(f"Number of tokens not found in file: {path}")
     normalized_activations[name] = load_and_normalize_activations(path, num_tokens)
 
 num_layers = len(next(iter(normalized_activations.values()))) - 1

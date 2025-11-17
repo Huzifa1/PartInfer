@@ -105,6 +105,9 @@ def generate(method, model, tokenizer, ori_prompt, task_type, num_fewshot, num_t
 
 
 def process_prompt_stable(prompt, task_type, num_fewshot):
+    if num_fewshot == 0:
+        return prompt
+    
     if task_type == 'QA':
         pre_prompt = generate_few_shot_QA(num_fewshot)
         final_prompt = pre_prompt + prompt + '\nA:'

@@ -34,7 +34,6 @@ class CustomMLPLayer(nn.Module):
     def forward(self, x):
         device = torch.device("cpu") if self.cpu_only else torch.device("cuda")
         global indices_list_all
-        global ind_counter
 
         if x.size(1)>1:
             self.weight_updated = False
