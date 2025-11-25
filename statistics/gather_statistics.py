@@ -166,12 +166,12 @@ for config in configs:
     task_type = config["task_type"]
 
     # === Load model and tokenizer ===
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = 'left'
     tokenizer.truncation_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto")
     model.eval()
     ctx_len = int(getattr(model.config, "max_position_embeddings", 2048))
     tokenizer.model_max_length = ctx_len
