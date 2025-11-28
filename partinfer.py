@@ -1,10 +1,23 @@
 from pathlib import Path
 import os
 import time
-
+import psutil
+import torch
 
 def main(method, model_name, checkpoint_path, sparsity, start_num, end_num, token_sparsity, prompt, memory_limit, num_fewshot, task_type, num_tokens_to_generate, device, sampling_method, partinfer_method_config, cpu_only = False, top_p = None, function: str = "normal"):
-    
+
+    # For monitoring runtime memory and time
+    process = psutil.Process(os.getpid())
+    cpu_mem_start_mb = process.memory_info().rss / (1024**2)
+    start_time = time.time()
+
+    if torch.cuda.is_available():
+        for dev in range(torch.cuda.device_count()):
+            with torch.cuda.device(dev):
+                torch.cuda.empty_cache()
+                torch.cuda.reset_peak_memory_stats()
+                
+
     if (method == "partinfer"):
         partinfer_method_config["use_partial_loading"] = True
     
@@ -63,7 +76,32 @@ def main(method, model_name, checkpoint_path, sparsity, start_num, end_num, toke
         raise ValueError("No function set: set --function")
 
 
+    # Print runtime memory and time statistics
+    end_time = time.time()
+    total_time = end_time - start_time
 
+    cpu_mem_end_mb = process.memory_info().rss / (1024**2)
+
+    peak_gpu_mem_mb = "No CUDA"
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        peaks = []
+        for dev in range(torch.cuda.device_count()):
+            with torch.cuda.device(dev):
+                peaks.append(torch.cuda.max_memory_allocated())
+        peak_gpu_mem_mb = max(peaks) / (1024**2)
+
+    print(f"\n=== Runtime statistics ===")
+    print(f"Total time: {total_time:.2f} seconds ({total_time/60:.2f} minutes)")
+    print(
+        f"CPU memory: start {cpu_mem_start_mb:.1f} MB -> "
+        f"end {cpu_mem_end_mb:.1f} MB "
+        f"(Δ {cpu_mem_end_mb - cpu_mem_start_mb:.1f} MB)"
+    )
+    if peak_gpu_mem_mb == "No CUDA":
+        print("Peak GPU memory allocated: 0.0 MB (no CUDA)")
+    else:
+        print(f"Peak GPU memory allocated (max across GPUs): {peak_gpu_mem_mb:.1f} MB")
 
 
 if __name__ == '__main__':
